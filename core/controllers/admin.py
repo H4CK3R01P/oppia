@@ -52,6 +52,7 @@ from core.domain import (
     role_services,
     search_services,
     skill_domain,
+    skill_fetchers,
     skill_services,
     state_domain,
     stats_services,
@@ -1308,11 +1309,11 @@ class AdminHandler(
                     subtopic_page_domain.SubtopicPage
                     .create_default_subtopic_page(1, topic_id))
             else:
-                skill = skill_services.skill_fetchers.get_skill_by_id(skill_id)
+                skill = skill_fetchers.get_skill_by_id(skill_id)
                 question_1 = question_services.get_question_by_id(question_id_1)
                 question_2 = question_services.get_question_by_id(question_id_2)
                 question_3 = question_services.get_question_by_id(question_id_3)
-                story = story_services.story_fetchers.get_story_by_id(story_id)
+                story = story_fetchers.get_story_by_id(story_id)
 
             # Generating the explorations to be added to the story.
             exploration_ids_to_publish = []
