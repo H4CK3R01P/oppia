@@ -658,3 +658,59 @@ class CreationButtonsTests(test_utils.GenericTestBase):
             expected_status_int=400,
         )
         self.logout()
+
+
+class CreatorStatsReportHandlerTests(test_utils.GenericTestBase):
+    """Test the CreatorStatsReportHandler."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.signup(self.OWNER_EMAIL, self.OWNER_USERNAME)
+
+    def test_get_creator_stats_report_with_no_explorations(self) -> None:
+        """Test stats report endpoint returns empty data for user with no explorations."""
+        self.login(self.OWNER_EMAIL)
+        response = self.get_json(feconf.CREATOR_STATS_REPORT_URL)
+
+        self.assertEqual(response['creator_summary']['num_explorations'], 0)
+        self.assertEqual(response['creator_summary']['total_learner_views'], 0)
+        self.assertEqual(response['explorations'], [])
+        self.logout()
+
+    def test_get_creator_stats_report_with_explorations(self) -> None:
+        """Test stats report endpoint returns correct data for creator's explorations."""
+        self.login(self.OWNER_EMAIL)
+        owner_id = self.get_user_id_from_email(self.OWNER_EMAIL)
+
+        # Create an exploration.
+        exp_id = 'exp_id_1'
+        self.save_new_default_exploration(
+            exp_id, owner_id, title='Test Exploration'
+        )
+
+        # Get stats report.
+        response = self.get_json(feconf.CREATOR_STATS_REPORT_URL)
+
+        # Verify response structure.
+        self.assertIn('creator_summary', response)
+        self.assertIn('explorations', response)
+        self.assertEqual(response['creator_summary']['num_explorations'], 1)
+        self.assertEqual(len(response['explorations']), 1)
+
+        # Verify exploration stats structure.
+        exploration_stats = response['explorations'][0]
+        self.assertEqual(exploration_stats['id'], exp_id)
+        self.assertEqual(exploration_stats['title'], 'Test Exploration')
+        self.assertIn('num_learner_views', exploration_stats)
+        self.assertIn('ratings', exploration_stats)
+        self.assertIn('completion_rate', exploration_stats)
+        self.assertIn('num_feedback_threads', exploration_stats)
+
+        self.logout()
+
+    def test_get_creator_stats_report_requires_authentication(self) -> None:
+        """Test that stats report endpoint requires user authentication."""
+        self.get_json(
+            feconf.CREATOR_STATS_REPORT_URL,
+            expected_status_int=401
+        )

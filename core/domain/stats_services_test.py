@@ -3627,3 +3627,43 @@ class LearnerAnswerDetailsServicesTest(test_utils.GenericTestBase):
             feconf.ENTITY_TYPE_QUESTION, self.state_reference_question
         )
         self.assertEqual(learner_answer_details, None)
+
+
+class CreatorStatsReportTests(test_utils.GenericTestBase):
+    """Test the get_creator_stats_report function."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.owner_id = self.get_user_id_from_email(self.OWNER_EMAIL)
+        self.user_id = self.get_user_id_from_email(self.USER_EMAIL)
+
+    def test_get_creator_stats_report_with_no_explorations(self) -> None:
+        """Test that stats report returns empty data for user with no explorations."""
+        stats_report = stats_services.get_creator_stats_report(self.user_id)
+
+        self.assertEqual(stats_report['creator_summary']['num_explorations'], 0)
+        self.assertEqual(stats_report['creator_summary']['total_learner_views'], 0)
+        self.assertEqual(stats_report['explorations'], [])
+
+    def test_get_creator_stats_report_with_explorations(self) -> None:
+        """Test that stats report aggregates data correctly for creator's explorations."""
+        # Create an exploration.
+        exp_id = 'exp_id_1'
+        self.save_new_default_exploration(exp_id, self.owner_id, title='Test Exploration')
+
+        # Get stats report.
+        stats_report = stats_services.get_creator_stats_report(self.owner_id)
+
+        # Verify creator summary.
+        self.assertEqual(stats_report['creator_summary']['num_explorations'], 1)
+        self.assertGreaterEqual(stats_report['creator_summary']['total_learner_views'], 0)
+
+        # Verify per-exploration stats.
+        self.assertEqual(len(stats_report['explorations']), 1)
+        exploration_stats = stats_report['explorations'][0]
+        self.assertEqual(exploration_stats['id'], exp_id)
+        self.assertEqual(exploration_stats['title'], 'Test Exploration')
+        self.assertIn('num_learner_views', exploration_stats)
+        self.assertIn('ratings', exploration_stats)
+        self.assertIn('completion_rate', exploration_stats)
+        self.assertIn('num_feedback_threads', exploration_stats)
