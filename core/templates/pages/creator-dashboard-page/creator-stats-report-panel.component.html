@@ -11,71 +11,89 @@
     </button>
   </div>
 
-  <div class="stats-report-summary">
-    <div class="stats-report-summary__item">
-      <p class="stats-report-summary__label">Explorations live</p>
-      <p class="stats-report-summary__value">
-        {{ creatorSummary?.numExplorations || 0 }}
-      </p>
-    </div>
-    <div class="stats-report-summary__item">
-      <p class="stats-report-summary__label">Total learner views</p>
-      <p class="stats-report-summary__value">
-        {{ creatorSummary?.totalLearnerViews | number }}
-      </p>
-    </div>
-    <div class="stats-report-summary__item">
-      <p class="stats-report-summary__label">Avg. rating</p>
-      <p class="stats-report-summary__value">
-        {{ creatorSummary?.averageExplorationRating | number: '1.1-1' }}
-      </p>
-    </div>
-    <div class="stats-report-summary__item">
-      <p class="stats-report-summary__label">Avg. completion rate</p>
-      <p class="stats-report-summary__value">
-        {{ (creatorSummary?.averageCompletionRate || 0) * 100 | number: '1.0-0' }}%
-      </p>
-    </div>
-    <div class="stats-report-summary__item">
-      <p class="stats-report-summary__label">Feedback threads</p>
-      <p class="stats-report-summary__value">
-        {{ creatorSummary?.totalFeedbackThreads || 0 }}
-      </p>
-    </div>
+  <div
+    class="stats-report-card__status"
+    *ngIf="isLoading">
+    Loading creator stats…
+  </div>
+  <div
+    class="stats-report-card__status stats-report-card__status--error"
+    *ngIf="!isLoading && loadError">
+    {{ loadError }}
   </div>
 
-  <div class="stats-report-table">
-    <div class="stats-report-table__header">
-      <h3>Top explorations (sample data)</h3>
-      <span>Showing {{ displayedExplorationStats.length }} of {{ explorationStats.length }}</span>
+  <ng-container *ngIf="!isLoading && !loadError && creatorSummary">
+    <div class="stats-report-summary">
+      <div class="stats-report-summary__item">
+        <p class="stats-report-summary__label">Explorations live</p>
+        <p class="stats-report-summary__value">
+          {{ creatorSummary.numExplorations }}
+        </p>
+      </div>
+      <div class="stats-report-summary__item">
+        <p class="stats-report-summary__label">Total learner views</p>
+        <p class="stats-report-summary__value">
+          {{ creatorSummary.totalLearnerViews | number }}
+        </p>
+      </div>
+      <div class="stats-report-summary__item">
+        <p class="stats-report-summary__label">Avg. rating</p>
+        <p class="stats-report-summary__value">
+          {{ creatorSummary.averageExplorationRating | number: '1.1-1' }}
+        </p>
+      </div>
+      <div class="stats-report-summary__item">
+        <p class="stats-report-summary__label">Avg. completion rate</p>
+        <p class="stats-report-summary__value">
+          {{ creatorSummary.averageCompletionRate * 100 | number: '1.0-0' }}%
+        </p>
+      </div>
+      <div class="stats-report-summary__item">
+        <p class="stats-report-summary__label">Feedback threads</p>
+        <p class="stats-report-summary__value">
+          {{ creatorSummary.totalFeedbackThreads }}
+        </p>
+      </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th scope="col">Exploration</th>
-          <th scope="col">Views</th>
-          <th scope="col">Avg. rating</th>
-          <th scope="col">Completion</th>
-          <th scope="col">Feedback</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let exploration of displayedExplorationStats; trackBy: trackExplorationById">
-          <td data-label="Exploration">
-            <span class="stats-report-table__exp-title">
-              {{ exploration.title }}
-            </span>
-            <span class="stats-report-table__exp-date">
-              Published {{ exploration.creationDateMsec | date: 'MMM y' }}
-            </span>
-          </td>
-          <td data-label="Views">{{ exploration.numLearnerViews | number }}</td>
-          <td data-label="Avg. rating">{{ exploration.averageRating | number: '1.1-1' }}</td>
-          <td data-label="Completion">{{ exploration.completionRate * 100 | number: '1.0-0' }}%</td>
-          <td data-label="Feedback">{{ exploration.numFeedbackThreads }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+
+    <div class="stats-report-table" *ngIf="explorationStats.length > 0; else noExplorations">
+      <div class="stats-report-table__header">
+        <h3>Top explorations</h3>
+        <span>Showing {{ displayedExplorationStats.length }} of {{ explorationStats.length }}</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Exploration</th>
+            <th scope="col">Views</th>
+            <th scope="col">Avg. rating</th>
+            <th scope="col">Completion</th>
+            <th scope="col">Feedback</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let exploration of displayedExplorationStats; trackBy: trackExplorationById">
+            <td data-label="Exploration">
+              <span class="stats-report-table__exp-title">
+                {{ exploration.title }}
+              </span>
+              <span class="stats-report-table__exp-date">
+                Published {{ exploration.creationDateMsec | date: 'MMM y' }}
+              </span>
+            </td>
+            <td data-label="Views">{{ exploration.numLearnerViews | number }}</td>
+            <td data-label="Avg. rating">{{ exploration.averageRating | number: '1.1-1' }}</td>
+            <td data-label="Completion">{{ exploration.completionRate * 100 | number: '1.0-0' }}%</td>
+            <td data-label="Feedback">{{ exploration.numFeedbackThreads }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #noExplorations>
+      <div class="stats-report-empty">
+        Publish an exploration to start seeing learner engagement trends here.
+      </div>
+    </ng-template>
+  </ng-container>
 </mat-card>
 

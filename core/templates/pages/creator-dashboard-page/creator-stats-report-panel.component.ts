@@ -20,75 +20,9 @@ import {Component, OnInit} from '@angular/core';
 import {
   CreatorExplorationStats,
   CreatorStatsReport,
-  CreatorStatsReportBackendDict,
   CreatorSummary,
 } from 'domain/creator_dashboard/creator-stats-report.model';
-
-const MOCK_STATS_REPORT: CreatorStatsReportBackendDict = {
-  creator_summary: {
-    num_explorations: 3,
-    total_learner_views: 18250,
-    average_exploration_rating: 4.5,
-    total_feedback_threads: 47,
-    average_completion_rate: 0.63,
-  },
-  explorations: [
-    {
-      id: 'expWelcomeFractions',
-      title: 'Fractions: Welcome Tour',
-      creation_date_msec: 1546300800000,
-      num_learner_views: 7450,
-      ratings: {
-        '1': 0,
-        '2': 3,
-        '3': 14,
-        '4': 81,
-        '5': 162,
-      },
-      average_rating: 4.6,
-      completion_rate: 0.71,
-      num_feedback_threads: 17,
-      num_solutions_viewed: 36,
-      num_hints_used: 82,
-    },
-    {
-      id: 'expEnergyIntro',
-      title: 'Energy Conservation Basics',
-      creation_date_msec: 1609459200000,
-      num_learner_views: 5235,
-      ratings: {
-        '1': 1,
-        '2': 5,
-        '3': 22,
-        '4': 66,
-        '5': 114,
-      },
-      average_rating: 4.3,
-      completion_rate: 0.58,
-      num_feedback_threads: 19,
-      num_solutions_viewed: 41,
-      num_hints_used: 97,
-    },
-    {
-      id: 'expBudget101',
-      title: 'Budgeting 101',
-      creation_date_msec: 1672444800000,
-      num_learner_views: 5565,
-      ratings: {
-        '1': 2,
-        '2': 4,
-        '3': 18,
-        '4': 52,
-        '5': 131,
-      },
-      average_rating: 4.5,
-      completion_rate: 0.59,
-      num_feedback_threads: 11,
-      num_solutions_viewed: 29,
-      num_hints_used: 73,
-    },
-  ],
-};
+import {CreatorStatsReportBackendApiService} from 'domain/creator_dashboard/creator-stats-report-backend-api.service';
 
 @Component({
   selector: 'oppia-creator-stats-report-panel',
@@ -100,16 +34,15 @@ export class CreatorStatsReportPanelComponent implements OnInit {
   explorationStats: CreatorExplorationStats[] = [];
   displayedExplorationStats: CreatorExplorationStats[] = [];
   readonly maxExplorationsToShow: number = 3;
+  isLoading: boolean = true;
+  loadError: string | null = null;
+
+  constructor(
+    private creatorStatsReportBackendApiService: CreatorStatsReportBackendApiService
+  ) {}
 
   ngOnInit(): void {
-    const mockReport =
-      CreatorStatsReport.createFromBackendDict(MOCK_STATS_REPORT);
-    this.creatorSummary = mockReport.creatorSummary;
-    this.explorationStats = mockReport.explorations;
-    this.displayedExplorationStats = this.explorationStats.slice(
-      0,
-      this.maxExplorationsToShow
-    );
+    this.fetchCreatorStatsReport();
   }
 
   trackExplorationById(
@@ -117,5 +50,29 @@ export class CreatorStatsReportPanelComponent implements OnInit {
     exploration: CreatorExplorationStats
   ): string {
     return exploration.id;
+  }
+
+  private fetchCreatorStatsReport(): void {
+    this.isLoading = true;
+    this.loadError = null;
+    this.creatorStatsReportBackendApiService
+      .fetchCreatorStatsReportAsync()
+      .then(report => {
+        this.populateReport(report);
+        this.isLoading = false;
+      })
+      .catch(() => {
+        this.loadError = 'Unable to load creator stats right now.';
+        this.isLoading = false;
+      });
+  }
+
+  private populateReport(report: CreatorStatsReport): void {
+    this.creatorSummary = report.creatorSummary;
+    this.explorationStats = report.explorations;
+    this.displayedExplorationStats = this.explorationStats.slice(
+      0,
+      this.maxExplorationsToShow
+    );
   }
 }
