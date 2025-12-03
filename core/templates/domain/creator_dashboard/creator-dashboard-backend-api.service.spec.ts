@@ -272,4 +272,72 @@ describe('Creator Dashboard backend API service', () => {
     expect(successHandler).toHaveBeenCalled();
     expect(failHandler).not.toHaveBeenCalled();
   }));
+
+  it('should successfully fetch creator stats report from the backend', fakeAsync(() => {
+    var successHandler = jasmine.createSpy('success');
+    var failHandler = jasmine.createSpy('fail');
+
+    var sampleStatsReport = {
+      creator_summary: {
+        num_explorations: 2,
+        total_learner_views: 100,
+        average_exploration_rating: 4.5,
+        total_feedback_threads: 10,
+        average_completion_rate: 0.75,
+      },
+      explorations: [
+        {
+          id: 'exp1',
+          title: 'Test Exploration 1',
+          creation_date_msec: 1000000000000,
+          num_learner_views: 50,
+          ratings: {'1': 0, '2': 0, '3': 1, '4': 2, '5': 1},
+          average_rating: 4.0,
+          completion_rate: 0.8,
+          num_feedback_threads: 5,
+          num_solutions_viewed: 10,
+          num_hints_used: 20,
+        },
+      ],
+    };
+
+    creatorDashboardBackendApiService
+      .fetchCreatorStatsReportAsync()
+      .then(successHandler, failHandler);
+
+    var req = httpTestingController.expectOne('/creatorstatsreporthandler');
+    expect(req.request.method).toEqual('GET');
+    req.flush(sampleStatsReport);
+
+    flushMicrotasks();
+
+    expect(successHandler).toHaveBeenCalled();
+    expect(failHandler).not.toHaveBeenCalled();
+  }));
+
+  it('should use rejection handler if stats report backend request failed', fakeAsync(() => {
+    var successHandler = jasmine.createSpy('success');
+    var failHandler = jasmine.createSpy('fail');
+
+    creatorDashboardBackendApiService
+      .fetchCreatorStatsReportAsync()
+      .then(successHandler, failHandler);
+
+    var req = httpTestingController.expectOne('/creatorstatsreporthandler');
+    expect(req.request.method).toEqual('GET');
+    req.flush(
+      {
+        error: 'Error loading stats report',
+      },
+      {
+        status: 500,
+        statusText: 'Internal Server Error',
+      }
+    );
+
+    flushMicrotasks();
+
+    expect(successHandler).not.toHaveBeenCalled();
+    expect(failHandler).toHaveBeenCalled();
+  }));
 });

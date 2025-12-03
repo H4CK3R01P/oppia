@@ -107,6 +107,15 @@
            [innerHTML]="'I18N_DASHBOARD_SUBSCRIBERS' | translate">
         </a>
       </li>
+      <li *ngIf="explorationsList?.length > 0 || collectionsList?.length > 0"
+          [ngClass]="{'oppia-dashboard-tabs-active': activeTab === 'statsReport'}">
+        <a class="oppia-dashboard-tabs-text e2e-test-stats-report-tab"
+           tabindex="0"
+           (keydown.enter)="setActiveTab('statsReport')"
+           (click)="setActiveTab('statsReport')">
+          Stats Report
+        </a>
+      </li>
 
       <li class="list-card-view-toggle dashboard-hide-mobile"
           *ngIf="activeTab === 'myExplorations' && explorationsList?.length > 0">
@@ -410,6 +419,10 @@
         </span>
       </a>
     </mat-card>
+  </div>
+
+  <div *ngIf="activeTab === 'statsReport'">
+    <oppia-stats-report-tab></oppia-stats-report-tab>
   </div>
 
   <div *ngIf="canCreateCollections && activeTab === 'myCollections'">

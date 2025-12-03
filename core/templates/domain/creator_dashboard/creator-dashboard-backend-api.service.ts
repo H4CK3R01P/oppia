@@ -51,6 +51,10 @@ import {
 } from 'domain/topic/creator-topic-summary.model';
 import {LoggerService} from 'services/contextual/logger.service';
 import {SuggestionsService} from 'services/suggestions.service';
+import {
+  CreatorStatsReport,
+  CreatorStatsReportBackendDict,
+} from 'domain/creator_dashboard/creator-stats-report.model';
 
 interface CreatorDashboardDataBackendDict {
   dashboard_stats: CreatorDashboardStatsBackendDict;
@@ -205,5 +209,21 @@ export class CreatorDashboardBackendApiService {
         display_preference: newViewType,
       })
       .toPromise();
+  }
+
+  async fetchCreatorStatsReportAsync(): Promise<CreatorStatsReport> {
+    return new Promise((resolve, reject) => {
+      this.http
+        .get<CreatorStatsReportBackendDict>('/creatorstatsreporthandler')
+        .toPromise()
+        .then(
+          response => {
+            resolve(CreatorStatsReport.createFromBackendDict(response));
+          },
+          errorResponse => {
+            reject(errorResponse.error.error);
+          }
+        );
+    });
   }
 }

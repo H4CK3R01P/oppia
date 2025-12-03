@@ -27,7 +27,10 @@ from core import feconf, utils
 from core.domain import (
     exp_domain,
     exp_fetchers,
+    feedback_services,
     question_services,
+    rating_services,
+    rights_manager,
     stats_domain,
 )
 from core.platform import models
@@ -1626,13 +1629,6 @@ def get_creator_stats_report(user_id: str) -> Dict[str, Union[Dict[str, Union[st
             - explorations: list of dicts, each containing per-exploration stats
               (id, title, views, ratings, completion rate, feedback threads, etc.)
     """
-    from core.domain import (
-        exp_fetchers,
-        feedback_services,
-        rating_services,
-        rights_manager,
-    )
-
     # Get all explorations where user has a role.
     exploration_summaries = (
         exp_fetchers.get_exploration_summaries_where_user_has_role(user_id)

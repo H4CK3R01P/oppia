@@ -1,0 +1,77 @@
+<div class="oppia-stats-report-container">
+  <div class="oppia-stats-report-summary" *ngIf="statsReport">
+    <h2>Creator Summary</h2>
+    <div class="oppia-stats-summary-cards">
+      <div class="oppia-stat-card">
+        <p class="stat-label">Total Explorations</p>
+        <h3 class="stat-value">{{ statsReport.creatorSummary.numExplorations }}</h3>
+      </div>
+      <div class="oppia-stat-card">
+        <p class="stat-label">Total Learner Views</p>
+        <h3 class="stat-value">{{ statsReport.creatorSummary.totalLearnerViews }}</h3>
+      </div>
+      <div class="oppia-stat-card">
+        <p class="stat-label">Average Rating</p>
+        <h3 class="stat-value">
+          {{ getAverageRatingDisplay(statsReport.creatorSummary.averageExplorationRating) }}
+        </h3>
+      </div>
+      <div class="oppia-stat-card">
+        <p class="stat-label">Total Feedback Threads</p>
+        <h3 class="stat-value">{{ statsReport.creatorSummary.totalFeedbackThreads }}</h3>
+      </div>
+      <div class="oppia-stat-card">
+        <p class="stat-label">Average Completion Rate</p>
+        <h3 class="stat-value">
+          {{ getCompletionRatePercentage(statsReport.creatorSummary.averageCompletionRate) }}
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="oppia-stats-report-explorations" *ngIf="statsReport && statsReport.explorations.length > 0">
+    <h2>Per-Exploration Statistics</h2>
+    <div class="oppia-exploration-stats-list">
+      <div class="oppia-exploration-stat-card" *ngFor="let exploration of statsReport.explorations">
+        <div class="exploration-header">
+          <h3 class="exploration-title">{{ exploration.title }}</h3>
+          <p class="exploration-id">ID: {{ exploration.id }}</p>
+          <p class="exploration-date">
+            Created: {{ getLocaleAbbreviatedDatetimeString(exploration.creationDateMsec) }}
+          </p>
+        </div>
+        <div class="exploration-stats-grid">
+          <div class="exploration-stat-item">
+            <span class="stat-label">Learner Views:</span>
+            <span class="stat-value">{{ exploration.numLearnerViews }}</span>
+          </div>
+          <div class="exploration-stat-item">
+            <span class="stat-label">Average Rating:</span>
+            <span class="stat-value">{{ getAverageRatingDisplay(exploration.averageRating) }}</span>
+          </div>
+          <div class="exploration-stat-item">
+            <span class="stat-label">Completion Rate:</span>
+            <span class="stat-value">{{ getCompletionRatePercentage(exploration.completionRate) }}</span>
+          </div>
+          <div class="exploration-stat-item">
+            <span class="stat-label">Feedback Threads:</span>
+            <span class="stat-value">{{ exploration.numFeedbackThreads }}</span>
+          </div>
+          <div class="exploration-stat-item">
+            <span class="stat-label">Solutions Viewed:</span>
+            <span class="stat-value">{{ exploration.numSolutionsViewed }}</span>
+          </div>
+          <div class="exploration-stat-item">
+            <span class="stat-label">Hints Used:</span>
+            <span class="stat-value">{{ exploration.numHintsUsed }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="oppia-stats-report-empty" *ngIf="statsReport && statsReport.explorations.length === 0">
+    <p>No exploration statistics available yet.</p>
+  </div>
+</div>
+
