@@ -31,6 +31,7 @@ from core.domain import (
     exp_services,
     feedback_services,
     role_services,
+    stats_services,
     subscription_services,
     suggestion_services,
     summary_services,
@@ -483,3 +484,28 @@ class UploadExplorationHandler(
             raise self.InvalidInputException(
                 'This server does not allow file uploads.'
             )
+
+
+class CreatorStatsReportHandler(
+    base.BaseHandler[Dict[str, str], Dict[str, str]]
+):
+    """Handler for fetching comprehensive stats report for a creator."""
+
+    GET_HANDLER_ERROR_RETURN_TYPE = feconf.HANDLER_TYPE_JSON
+    URL_PATH_ARGS_SCHEMAS: Dict[str, str] = {}
+    HANDLER_ARGS_SCHEMAS: Dict[str, Dict[str, str]] = {'GET': {}}
+
+    @acl_decorators.can_access_creator_dashboard
+    def get(self) -> None:
+        """Handles GET requests for creator stats report.
+
+        Returns a comprehensive statistics report including:
+        - Creator summary (total views, avg rating, total feedback, etc.)
+        - Per-exploration statistics (views, ratings, completion rate, etc.)
+        """
+        assert self.user_id is not None
+
+        stats_report = stats_services.get_creator_stats_report(self.user_id)
+
+        self.values.update(stats_report)
+        self.render_json(self.values)

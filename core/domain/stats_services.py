@@ -1607,3 +1607,176 @@ def delete_learner_answer_details_for_question_state(question_id: str) -> None:
     )
     if learner_answer_details_model is not None:
         learner_answer_details_model.delete()
+
+
+def get_creator_stats_report(user_id: str) -> Dict[str, Union[Dict[str, Union[str, int, float]], List[Dict[str, Union[str, int, float, Dict[str, int]]]]]]:
+    """Aggregates and returns comprehensive statistics for a creator's explorations.
+
+    This function collects statistics for all explorations where the user has
+    a role (owner, editor, etc.) and aggregates them into a comprehensive report
+    including creator summary and per-exploration statistics.
+
+    Args:
+        user_id: str. The ID of the creator/user.
+
+    Returns:
+        dict. A dictionary containing:
+            - creator_summary: dict with aggregated stats (total views, avg rating,
+              total feedback threads, avg completion rate, etc.)
+            - explorations: list of dicts, each containing per-exploration stats
+              (id, title, views, ratings, completion rate, feedback threads, etc.)
+    """
+    from core.domain import (
+        exp_fetchers,
+        feedback_services,
+        rating_services,
+        rights_manager,
+    )
+
+    # Get all explorations where user has a role.
+    exploration_summaries = (
+        exp_fetchers.get_exploration_summaries_where_user_has_role(user_id)
+    )
+
+    # Filter to only get explorations where user is owner.
+    exploration_rights_list = (
+        rights_manager.get_exploration_rights_where_user_is_owner(user_id)
+    )
+    owned_exploration_ids = {
+        rights.id for rights in exploration_rights_list
+    }
+
+    # Filter summaries to only owned explorations.
+    owned_exploration_summaries = [
+        summary for summary in exploration_summaries
+        if summary.id in owned_exploration_ids
+    ]
+
+    if not owned_exploration_summaries:
+        return {
+            'creator_summary': {
+                'num_explorations': 0,
+                'total_learner_views': 0,
+                'average_exploration_rating': 0.0,
+                'total_feedback_threads': 0,
+                'average_completion_rate': 0.0,
+            },
+            'explorations': []
+        }
+
+    exploration_ids = [summary.id for summary in owned_exploration_summaries]
+
+    # Get stats for all explorations.
+    exp_version_references = [
+        exp_domain.ExpVersionReference(summary.id, summary.version)
+        for summary in owned_exploration_summaries
+    ]
+    exploration_stats_list = get_exploration_stats_multi(exp_version_references)
+
+    # Get feedback analytics for all explorations.
+    feedback_analytics_list = feedback_services.get_thread_analytics_multi(
+        exploration_ids
+    )
+
+    # Aggregate per-exploration stats and calculate totals.
+    total_views = 0
+    total_feedback_threads = 0
+    total_completions = 0
+    total_actual_starts = 0
+    rating_sum = 0.0
+    rating_count = 0
+
+    per_exploration_stats = []
+
+    for summary, stats, feedback_analytics in zip(
+        owned_exploration_summaries,
+        exploration_stats_list,
+        feedback_analytics_list
+    ):
+        # Calculate completion rate.
+        num_actual_starts = (
+            stats.num_actual_starts_v1 + stats.num_actual_starts_v2
+        )
+        num_completions = stats.num_completions_v1 + stats.num_completions_v2
+        completion_rate = (
+            num_completions / num_actual_starts
+            if num_actual_starts > 0 else 0.0
+        )
+
+        # Get ratings.
+        ratings = rating_services.get_overall_ratings_for_exploration(
+            summary.id
+        )
+        # Calculate average rating.
+        total_rating_value = sum(
+            int(star) * count for star, count in ratings.items()
+        )
+        total_rating_count = sum(ratings.values())
+        avg_rating = (
+            total_rating_value / total_rating_count
+            if total_rating_count > 0 else 0.0
+        )
+
+        # Calculate solution and hint views from state stats.
+        total_solution_views = 0
+        total_hint_views = 0
+        if stats.state_stats_mapping:
+            for state_stats in stats.state_stats_mapping.values():
+                # Solution views are tracked as num_times_solution_viewed_v2.
+                solution_views = state_stats.get(
+                    'num_times_solution_viewed_v2', 0
+                )
+                total_solution_views += solution_views
+                # Hint views can be approximated from useful_feedback_count.
+                # Note: This is an approximation as hints are not directly tracked.
+                hint_views = (
+                    state_stats.get('useful_feedback_count_v1', 0) +
+                    state_stats.get('useful_feedback_count_v2', 0)
+                )
+                total_hint_views += hint_views
+
+        exploration_stat_dict = {
+            'id': summary.id,
+            'title': summary.title,
+            'creation_date_msec': summary.created_on_msec,
+            'num_learner_views': summary.num_views,
+            'ratings': ratings,
+            'average_rating': round(avg_rating, 2),
+            'completion_rate': round(completion_rate, 4),
+            'num_feedback_threads': feedback_analytics.num_total_threads,
+            'num_solutions_viewed': total_solution_views,
+            'num_hints_used': total_hint_views,
+        }
+
+        per_exploration_stats.append(exploration_stat_dict)
+
+        # Aggregate totals.
+        total_views += summary.num_views
+        total_feedback_threads += feedback_analytics.num_total_threads
+        total_completions += num_completions
+        total_actual_starts += num_actual_starts
+        if avg_rating > 0:
+            rating_sum += avg_rating
+            rating_count += 1
+
+    # Calculate averages.
+    average_exploration_rating = (
+        rating_sum / rating_count if rating_count > 0 else 0.0
+    )
+    average_completion_rate = (
+        total_completions / total_actual_starts
+        if total_actual_starts > 0 else 0.0
+    )
+
+    creator_summary = {
+        'num_explorations': len(owned_exploration_summaries),
+        'total_learner_views': total_views,
+        'average_exploration_rating': round(average_exploration_rating, 2),
+        'total_feedback_threads': total_feedback_threads,
+        'average_completion_rate': round(average_completion_rate, 4),
+    }
+
+    return {
+        'creator_summary': creator_summary,
+        'explorations': per_exploration_stats
+    }
