@@ -1,0 +1,133 @@
+.stats-report-card {
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.stats-report-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stats-report-card__eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #63676b;
+  margin: 0 0 4px;
+}
+
+.stats-report-card__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.stats-report-card__action {
+  border: 1px solid #a6a6a6;
+  border-radius: 20px;
+  padding: 8px 16px;
+  background: transparent;
+  color: #6b6b6b;
+  cursor: not-allowed;
+}
+
+.stats-report-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stats-report-summary__item {
+  background: #f8fbff;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.stats-report-summary__label {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #6b6b6b;
+}
+
+.stats-report-summary__value {
+  margin: 6px 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1b4d9b;
+}
+
+.stats-report-table__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.stats-report-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stats-report-table th,
+.stats-report-table td {
+  text-align: left;
+  padding: 12px 8px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.stats-report-table__exp-title {
+  display: block;
+  font-weight: 600;
+}
+
+.stats-report-table__exp-date {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b6b6b;
+}
+
+@media (max-width: 768px) {
+  .stats-report-summary {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .stats-report-table table,
+  .stats-report-table thead {
+    display: none;
+  }
+
+  .stats-report-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .stats-report-table tr {
+    display: grid;
+    padding: 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+  }
+
+  .stats-report-table td {
+    border: none;
+    padding: 6px 0;
+  }
+
+  .stats-report-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6b6b6b;
+  }
+}
+

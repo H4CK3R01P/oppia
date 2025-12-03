@@ -24,6 +24,7 @@ import {InteractionExtensionsModule} from 'interactions/interactions.module';
 import {toastrConfig} from 'pages/oppia-root/app.module';
 import {CreatorDashboardPageComponent} from './creator-dashboard-page.component';
 import {CreatorDashboardPageRootComponent} from './creator-dashboard-page-root.component';
+import {CreatorStatsReportPanelComponent} from './creator-stats-report-panel.component';
 
 @NgModule({
   imports: [
@@ -40,6 +41,7 @@ import {CreatorDashboardPageRootComponent} from './creator-dashboard-page-root.c
   declarations: [
     CreatorDashboardPageComponent,
     CreatorDashboardPageRootComponent,
+    CreatorStatsReportPanelComponent,
   ],
   entryComponents: [CreatorDashboardPageComponent],
 })

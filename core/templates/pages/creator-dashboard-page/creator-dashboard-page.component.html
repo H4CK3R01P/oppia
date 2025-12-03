@@ -77,6 +77,12 @@
     </mat-card>
   </div>
 
+  <div
+    class="creator-stats-report-wrapper"
+    *ngIf="explorationsList?.length > 0">
+    <oppia-creator-stats-report-panel></oppia-creator-stats-report-panel>
+  </div>
+
   <div *ngIf="explorationsList?.length > 0 || collectionsList?.length > 0">
     <ul class="oppia-dashboard-tabs">
       <li *ngIf="explorationsList?.length > 0"
@@ -140,7 +146,7 @@
     </div>
 
     <div *ngIf="explorationsList?.length > 0" class="oppia-dashboard-tab-panel oppia-dashboard-tab-panel-container">
-      <span class="sort-explorations-select float-right"
+      <span class="sort-explorations-select float-end"
             *ngIf="activeTab === 'myExplorations'"
             [ngClass]="{'sort-explorations-select-three-tabs': (collectionsList?.length !== 0 && subscribersList?.length !== 0)}">
         <p class="sort-by-text" [innerHTML]="'I18N_DASHBOARD_EXPLORATIONS_SORT_BY' | translate">Sort By</p>
@@ -369,7 +375,7 @@
             class="oppia-subscriber-text"
             [innerHTML]="'I18N_ONE_SUBSCRIBER_TEXT' | translate">
       </span>
-      <span class="sort-explorations-select float-right"
+      <span class="sort-explorations-select float-end"
             *ngIf="activeTab === 'mySubscribers'"
             [ngClass]="{'sort-explorations-select-three-tabs': (collectionsList?.length !== 0 && subscribersList?.length !== 0)}">
         <p class="sort-by-text">Sort By</p>
