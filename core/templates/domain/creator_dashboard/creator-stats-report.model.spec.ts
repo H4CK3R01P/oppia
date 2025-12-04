@@ -116,4 +116,3 @@ describe('CreatorStatsReport model', () => {
     expect(statsReport.explorations[1].id).toBe('exp2');
   });
 });
-
