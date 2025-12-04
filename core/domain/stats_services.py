@@ -1719,17 +1719,11 @@ def get_creator_stats_report(user_id: str) -> Dict[str, Union[Dict[str, Union[st
         if stats.state_stats_mapping:
             for state_stats in stats.state_stats_mapping.values():
                 # Solution views are tracked as num_times_solution_viewed_v2.
-                solution_views = state_stats.get(
-                    'num_times_solution_viewed_v2', 0
-                )
+                solution_views = state_stats.num_times_solution_viewed_v2
                 total_solution_views += solution_views
                 # Hint views can be approximated from useful_feedback_count.
                 # Note: This is an approximation as hints are not directly tracked.
-                hint_views = (
-                    state_stats.get('useful_feedback_count_v1', 0) +
-                    state_stats.get('useful_feedback_count_v2', 0)
-                )
-                total_hint_views += hint_views
+                total_hint_views += state_stats.useful_feedback_count
 
         exploration_stat_dict = {
             'id': summary.id,
@@ -1751,9 +1745,8 @@ def get_creator_stats_report(user_id: str) -> Dict[str, Union[Dict[str, Union[st
         total_feedback_threads += feedback_analytics.num_total_threads
         total_completions += num_completions
         total_actual_starts += num_actual_starts
-        if avg_rating > 0:
-            rating_sum += avg_rating
-            rating_count += 1
+        rating_sum += avg_rating
+        rating_count += 1
 
     # Calculate averages.
     average_exploration_rating = (
