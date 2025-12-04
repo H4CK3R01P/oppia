@@ -36,6 +36,9 @@ import {CollectionSummary} from 'domain/collection/collection-summary.model';
 import {ExplorationRatings} from 'domain/summary/learner-exploration-summary.model';
 import {CreatorDashboardStats} from 'domain/creator_dashboard/creator-dashboard-stats.model';
 import {WindowDimensionsService} from 'services/contextual/window-dimensions.service';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {CreatorStatsReportModalComponent} from './modal-templates/creator-stats-report-modal.component';
+import {UserInfo} from 'domain/user/user-info.model';
 
 @Component({
   selector: 'oppia-creator-dashboard-page',
@@ -62,6 +65,8 @@ export class CreatorDashboardPageComponent {
   getHumanReadableStatus!: (status: string) => string;
   emptyDashboardImgUrl!: string;
   getAverageRating!: (ratingFrequencies: ExplorationRatings) => number | null;
+  creatorCompletionRate!: number | null;
+  currentUserInfo!: UserInfo;
 
   isCurrentSortDescending: boolean = false;
   isCurrentSubscriptionSortDescending: boolean = false;
@@ -95,7 +100,8 @@ export class CreatorDashboardPageComponent {
     private dateTimeFormatService: DateTimeFormatService,
     private threadStatusDisplayService: ThreadStatusDisplayService,
     private explorationCreationService: ExplorationCreationService,
-    private windowRef: WindowRef
+    private windowRef: WindowRef,
+    private ngbModal: NgbModal
   ) {}
 
   EXP_PUBLISH_TEXTS = {
@@ -220,6 +226,7 @@ export class CreatorDashboardPageComponent {
     let userInfoPromise = this.userService.getUserInfoAsync();
     userInfoPromise.then(userInfo => {
       this.canCreateCollections = userInfo.canCreateCollections();
+      this.currentUserInfo = userInfo;
     });
 
     let dashboardDataPromise =
@@ -238,6 +245,7 @@ export class CreatorDashboardPageComponent {
       this.dashboardStats = responseData.dashboardStats;
       this.lastWeekStats = responseData.lastWeekStats;
       this.myExplorationsView = responseData.displayPreference;
+      this.creatorCompletionRate = responseData.creatorCompletionRate;
 
       if (this.dashboardStats && this.lastWeekStats) {
         this.relativeChangeInTotalPlays =
@@ -286,5 +294,69 @@ export class CreatorDashboardPageComponent {
     // keyvalue : 0 gives error "TypeError: The comparison function
     // must be either a function or undefined".
     return 0;
+  }
+
+  downloadStatsCsv(): void {
+    const lines: string[] = [];
+    const header = [
+      'Username',
+      'Email',
+      'Total Plays',
+      'Average Ratings',
+      'Total Open Feedback',
+      'Total Subscribers',
+      'Average Completion Rate (%)',
+    ];
+    const username = this.currentUserInfo
+      ? this.currentUserInfo.getUsername()
+      : '';
+    const email = this.currentUserInfo ? this.currentUserInfo.getEmail() : '';
+    const row = [
+      username,
+      email,
+      String(this.dashboardStats.totalPlays),
+      String(this.dashboardStats.averageRatings || ''),
+      String(this.dashboardStats.totalOpenFeedback),
+      String(this.subscribersList.length),
+      this.creatorCompletionRate !== null
+        ? String(this.creatorCompletionRate)
+        : '',
+    ];
+    lines.push(header.join(','));
+    lines.push(row.join(','));
+    lines.push(
+      'Exploration ID,Title,Open Threads,Average Rating,Plays,Last Updated'
+    );
+    for (const exp of this.explorationsList) {
+      const avg = this.getAverageRating(exp.ratings);
+      const updated = this.getLocaleAbbreviatedDatetimeString(
+        exp.lastUpdatedMsec
+      );
+      const l = [
+        exp.id,
+        '"' + (exp.title || this.DEFAULT_EMPTY_TITLE).replace(/"/g, '""') + '"',
+        String(exp.numOpenThreads),
+        avg !== null ? String(Number(avg).toFixed(1)) : 'N/A',
+        String(exp.numViews),
+        '"' + updated + '"',
+      ];
+      lines.push(l.join(','));
+    }
+    const csv = lines.join('\n');
+    const a = this.windowRef.nativeWindow.document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'creator_stats.csv';
+    a.click();
+  }
+
+  openStatsReportModal(): void {
+    const modalRef = this.ngbModal.open(CreatorStatsReportModalComponent, {
+      size: 'lg',
+    });
+    const cmp = modalRef.componentInstance as CreatorStatsReportModalComponent;
+    cmp.dashboardStats = this.dashboardStats;
+    cmp.creatorCompletionRate = this.creatorCompletionRate;
+    cmp.subscribersCount = this.subscribersList.length;
+    cmp.explorationsList = this.explorationsList;
   }
 }

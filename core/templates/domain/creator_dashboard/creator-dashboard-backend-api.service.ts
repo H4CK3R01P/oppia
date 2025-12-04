@@ -64,6 +64,7 @@ interface CreatorDashboardDataBackendDict {
   explorations_list: CreatorExplorationSummaryBackendDict[];
   collections_list: CollectionSummaryBackendDict[];
   topic_summary_dicts: CreatorTopicSummaryBackendDict[];
+  creator_completion_rate?: number;
 }
 
 export interface CreatorDashboardData {
@@ -81,6 +82,7 @@ export interface CreatorDashboardData {
   explorationsList: CreatorExplorationSummary[];
   collectionsList: CollectionSummary[];
   topicSummaries: CreatorTopicSummary[];
+  creatorCompletionRate: number | null;
 }
 
 @Injectable({
@@ -186,6 +188,8 @@ export class CreatorDashboardBackendApiService {
                     CreatorTopicSummary.createFromBackendDict(topicSummaryDict)
                   )
                 : [],
+              creatorCompletionRate:
+                dashboardData.creator_completion_rate ?? null,
             });
           },
           errorResponse => {

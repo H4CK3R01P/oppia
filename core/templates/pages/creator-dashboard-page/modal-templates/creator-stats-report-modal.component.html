@@ -1,0 +1,40 @@
+<div class="modal-header">
+  <h3 class="modal-title">Creator Stats Report</h3>
+  <button type="button" class="close" aria-label="Close" (click)="close()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body">
+  <div class="mb-3">
+    <div>Average Rating: {{ dashboardStats.averageRatings || 'N/A' }}</div>
+    <div>Total Plays: {{ dashboardStats.totalPlays }}</div>
+    <div>Total Open Feedback: {{ dashboardStats.totalOpenFeedback }}</div>
+    <div>Total Subscribers: {{ subscribersCount }}</div>
+    <div>Average Completion Rate: {{ creatorCompletionRate !== null ? (creatorCompletionRate + '%') : 'N/A' }}</div>
+  </div>
+  <div>
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th>Exploration</th>
+          <th>Open Threads</th>
+          <th>Avg Rating</th>
+          <th>Plays</th>
+          <th>Last Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let exp of explorationsList">
+          <td>{{ exp.title || 'Untitled' }}</td>
+          <td>{{ exp.numOpenThreads }}</td>
+          <td>{{ (exp.ratings && exp.ratings.scaledAverageRating) ? (exp.ratings.scaledAverageRating | number:'1.1-1') : 'N/A' }}</td>
+          <td>{{ exp.numViews }}</td>
+          <td>{{ exp.lastUpdatedMsec | date:'medium' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-secondary" (click)="close()">Close</button>
+</div>

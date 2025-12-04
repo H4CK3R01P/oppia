@@ -29,6 +29,7 @@ from core.domain import (
     exp_domain,
     exp_fetchers,
     exp_services,
+    stats_services,
     feedback_services,
     role_services,
     subscription_services,
@@ -257,6 +258,21 @@ class CreatorDashboardHandler(
                     _round_average_ratings(average_ratings)
                 )
 
+        total_starts = 0
+        total_completions = 0
+        for exp_id in exploration_ids_subscribed_to:
+            exp_obj = exp_fetchers.get_exploration_by_id(exp_id)
+            exp_stats = stats_services.get_exploration_stats(
+                exp_id, exp_obj.version
+            )
+            total_starts += exp_stats.num_starts
+            total_completions += exp_stats.num_completions
+        creator_completion_rate = (
+            round((total_completions / total_starts) * 100, 2)
+            if total_starts > 0
+            else None
+        )
+
         last_week_stats = user_services.get_last_week_dashboard_stats(
             self.user_id
         )
@@ -367,6 +383,7 @@ class CreatorDashboardHandler(
                     suggestion_dicts_which_can_be_reviewed
                 ),
                 'topic_summary_dicts': topic_summary_dicts,
+                'creator_completion_rate': creator_completion_rate,
             }
         )
 
